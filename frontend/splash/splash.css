@@ -1,0 +1,56 @@
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+    height:100vh;
+    background:url('../public/background.png') center/cover no-repeat;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Orbitron',sans-serif;
+    color:#e8faff;
+}
+.hud{
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at center, rgba(0,255,255,.12), transparent 70%),
+        linear-gradient(rgba(0,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,255,.03) 1px, transparent 1px);
+    background-size:100% 100%,40px 40px,40px 40px;
+}
+.panel{
+    position:relative;
+    z-index:1;
+    width:480px;
+    padding:45px;
+    border-radius:22px;
+    background:rgba(10,20,35,.55);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(0,255,255,.2);
+}
+h1{
+    letter-spacing:8px;
+    font-weight:500;
+}
+p{
+    font-size:12px;
+    opacity:.75;
+    margin:8px 0 25px;
+}
+.progress{
+    height:6px;
+    background:rgba(255,255,255,.1);
+    border-radius:6px;
+    overflow:hidden;
+}
+.bar{
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg,#00e5ff,#0072ff);
+    transition:width .6s;
+}
+.logs{
+    margin-top:25px;
+    font-size:11px;
+    line-height:1.6;
+    opacity:.85;
+}

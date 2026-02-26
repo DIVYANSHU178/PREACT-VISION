@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PREACT VISION - Admin Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --accent: #3b82f6;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main); min-height: 100vh; }
+
+        .header {
+            height: 70px;
+            background: #111827;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+        .header h1 { font-family: 'Poppins', sans-serif; font-size: 1.4rem; color: var(--accent); letter-spacing: 1px; }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+
+        .card { background: var(--bg-card); border-radius: 12px; padding: 30px; border: 1px solid #334155; margin-bottom: 30px; }
+        .card h2 { font-size: 1.2rem; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        .card h2 i { color: var(--accent); }
+
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid #334155; color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; }
+        td { padding: 15px 12px; border-bottom: 1px solid #334155; font-size: 0.9rem; }
+
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: 0.2s; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-logout { background: transparent; border: 1px solid #334155; color: var(--text-dim); }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .empty-state { text-align: center; padding: 40px; color: var(--text-dim); font-style: italic; }
+        .error-msg { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: var(--danger); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>PREACT VISION <span style="font-size: 0.8rem; color: var(--text-dim)">| ADMIN PANEL</span></h1>
+        <button class="btn btn-logout" onclick="logout()">Logout</button>
+    </header>
+
+    <div class="container">
+        <div id="globalError" class="error-msg"></div>
+
+        <div class="card">
+            <h2><i class="fas fa-user-clock"></i> Pending Access Requests</h2>
+            <div class="table-wrap">
+                <table id="requestsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Organization</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsBody">
+                        <tr><td colspan="5" style="text-align: center; padding: 20px;">Checking for pending requests...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-video"></i> System Cameras</h2>
+            <div class="table-wrap">
+                <table id="camerasTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Stream URL</th>
+                            <th>Status</th>
+                            <th>Zone</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="camerasBody">
+                        <!-- Camera data -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:5000/api";
+        const token = localStorage.getItem('access_token');
+
+        // Check if token exists and if user is admin
+        if (!token) {
+            console.error("No access token found. Redirecting to login.");
+            window.location.href = '../auth/index.html';
+        }
+
+        async function authFetch(endpoint, options = {}) {
+            const currentToken = localStorage.getItem('access_token');
+            
+            if (!options.headers) options.headers = {};
+            if (currentToken) {
+                options.headers['Authorization'] = `Bearer ${currentToken}`;
+            }
+            if (options.body && !options.headers['Content-Type']) {
+                options.headers['Content-Type'] = 'application/json';
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                
+                if (response.status === 401 || response.status === 422) {
+                    console.error(`Auth failed (${response.status}) for ${endpoint}`);
+                    localStorage.removeItem('access_token');
+                    window.location.href = '../auth/index.html';
+                    return null;
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `Error ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (err) {
+                console.error(`Fetch error:`, err);
+                showError(`System Error: ${err.message}`);
+                return null;
+            }
+        }
+
+        function showError(msg) {
+            const errDiv = document.getElementById('globalError');
+            errDiv.textContent = msg;
+            errDiv.style.display = 'block';
+            setTimeout(() => { errDiv.style.display = 'none'; }, 5000);
+        }
+
+        async function fetchRequests() {
+            const body = document.getElementById('requestsBody');
+            const data = await authFetch('/auth/admin/pending');
+            
+            if (!data) {
+                body.innerHTML = '<tr><td colspan="5" class="empty-state" style="color: var(--danger);">Failed to fetch pending requests.</td></tr>';
+                return;
+            }
+            
+            body.innerHTML = '';
+            if (data.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="empty-state">No pending requests found.</td></tr>';
+                return;
+            }
+
+            data.forEach(req => {
+                const row = `
+                    <tr>
+                        <td>${req.fullname}</td>
+                        <td>${req.email}</td>
+                        <td>${req.organization}</td>
+                        <td>${req.created_at}</td>
+                        <td>
+                            <button class="btn btn-success" onclick="handleAction('approve', ${req.id})">Approve</button>
+                            <button class="btn btn-danger" onclick="handleAction('reject', ${req.id})">Reject</button>
+                        </td>
+                    </tr>
+                `;
+                body.innerHTML += row;
+            });
+        }
+
+        async function fetchCameras() {
+            const body = document.getElementById('camerasBody');
+            const data = await authFetch('/cameras');
+            
+            if (!data) {
+                body.innerHTML = '<tr><td colspan="5" class="empty-state" style="color: var(--danger);">Failed to fetch cameras.</td></tr>';
+                return;
+            }
+            
+            body.innerHTML = '';
+            if (data.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="empty-state">No cameras found.</td></tr>';
+                return;
+            }
+
+            data.forEach(cam => {
+                const row = `
+                    <tr>
+                        <td>${cam.name}</td>
+                        <td style="font-family: monospace; font-size: 0.75rem;">${cam.stream_url}</td>
+                        <td><span style="color: ${cam.status === 'streaming' ? 'var(--success)' : 'var(--text-dim)'}">${cam.status}</span></td>
+                        <td>${cam.zone}</td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 4px 8px;" onclick="editCamera(${cam.id}, '${cam.name}', '${cam.stream_url}')">Edit</button>
+                        </td>
+                    </tr>
+                `;
+                body.innerHTML += row;
+            });
+        }
+
+        async function editCamera(id, currentName, currentUrl) {
+            const newUrl = prompt(`Enter new Stream URL for ${currentName}:`, currentUrl);
+            if (newUrl !== null && newUrl !== currentUrl) {
+                const res = await authFetch(`/cameras/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ stream_url: newUrl })
+                });
+                if (res) {
+                    alert("Camera updated successfully");
+                    fetchCameras();
+                }
+            }
+        }
+
+        async function handleAction(action, userId) {
+            const res = await authFetch(`/auth/admin/${action}`, {
+                method: 'POST',
+                body: JSON.stringify({ user_id: userId })
+            });
+            if (res) {
+                alert(res.message || "Action successful");
+                fetchRequests();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = '../auth/index.html';
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchRequests();
+            fetchCameras();
+        });
+    </script>
+</body>
+</html>
