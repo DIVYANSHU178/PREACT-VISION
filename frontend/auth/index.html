@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PREACT VISION - Secure Access</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for Inter, Poppins, IBM Plex Sans - Chosen for modern, professional aesthetic. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&family=Inter:wght@300;400;600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body class="login-page">
+    <!--
+        Overall layout container. Uses flexbox to divide the screen into two main sections:
+        - login-panel (left, ~40% width, contains the form)
+        - background-panel (right, ~60% width, implicitly shows the background image)
+        The background image itself is applied to this container to ensure it covers the entire page.
+    -->
+    <div class="login-panel fade-slide-in">
+        <div class="login-form-content">
+            <div class="branding">
+                                    <div class="logo-text-container">
+                                        <h1 class="logo-preact">PREACT</h1>
+                                        <div class="logo-subline-container">
+                                            <div class="logo-hr-line"></div>
+                                            <p class="logo-vision">VISION</p>
+                                        </div>
+                                    </div>            </div>
+            <!-- Main heading for the login section, communicating security. -->
+                                      <!-- Subheading to provide context about the platform. -->
+            <p class="subheading">AI-Powered Behavior Intelligence Platform</p>
+
+            <!-- The login form itself, structured for clarity and ease of use. -->
+            <form class="login-form">
+                <div class="input-group">
+                    <label for="email">Email / Username</label>
+                    <input type="text" id="email" name="email" placeholder="Enter your email or username" required>
+                </div>
+                <div class="input-group password-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <!-- Toggle for password visibility, enhancing user experience and accessibility. -->
+                    <span class="toggle-password" onclick="togglePasswordVisibility()"></span>
+                </div>
+
+                <div class="form-options">
+                    <!-- 'Remember me' checkbox for convenience, with custom styling. -->
+                    <div class="remember-me">
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        <label for="rememberMe">Remember me</label>
+                    </div>
+                    <!-- 'Forgot password' link for account recovery, standard practice. -->
+                    <a href="forgot-password.html" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <!-- Primary login action button, styled for prominence. -->
+                <button type="submit" class="btn btn-primary">Login</button>
+                <!-- Secondary action button, offering alternative access options. -->
+                <a href="registered.html" class="btn btn-secondary">Request Access</a>
+            </form>
+
+            <!-- Footer section for legal notices and branding. -->
+            <footer class="login-footer">
+                <p class="privacy-notice">By logging in, you agree to our <a href="privacy.html">Privacy Policy</a></p>
+                                    <p class="copyright">© PREACT VISION – AI Surveillance Platform</p>            </footer>
+        </div>
+    </div>
+    <!-- Link to JavaScript file for interactive elements like password toggle. -->
+    <script src="script.js"></script>
+</body>
+</html>

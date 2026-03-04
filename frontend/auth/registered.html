@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PREACT VISION – Request Access</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Fonts (same as login page for consistency) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&family=Inter:wght@300;400;600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="login-panel fade-slide-in">
+    <div class="login-form-content">
+
+        <!-- Branding -->
+        <div class="branding">
+            <div class="logo-text-container">
+                <h1 class="logo-preact">PREACT</h1>
+                <div class="logo-subline-container">
+                    <div class="logo-hr-line"></div>
+                    <p class="logo-vision">VISION</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Heading -->
+        <p class="subheading">
+            Enterprise onboarding & identity verification
+        </p>
+
+        <!-- Register Form -->
+        <form class="login-form" id="registerForm">
+
+            <div class="input-group">
+                <label for="fullname">Full Name</label>
+                <input
+                    type="text"
+                    id="fullname"
+                    name="fullname"
+                    placeholder="Your full name"
+                    required
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input
+                    type="text"
+                    id="email"
+                    name="email"
+                    placeholder="name@organization.com"
+                    required
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="organization">Organization</label>
+                <input
+                    type="text"
+                    id="organization"
+                    name="organization"
+                    placeholder="Company / Institution"
+                    required
+                >
+            </div>
+
+            <p id="formMsg" class="privacy-notice" style="display:none;"></p>
+
+            <!-- Primary -->
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                Submit Access Request
+            </button>
+
+            <!-- Secondary -->
+            <a href="index.html" class="btn btn-secondary">
+                Back to Login
+            </a>
+        </form>
+
+        <!-- Footer -->
+        <footer class="login-footer">
+            <p class="copyright">
+                © PREACT VISION – AI Surveillance Platform
+            </p>
+        </footer>
+
+    </div>
+</div>
+
+<script>
+const API_BASE = "http://127.0.0.1:5000/api";
+
+const form = document.getElementById("registerForm");
+const msg = document.getElementById("formMsg");
+const btn = document.getElementById("submitBtn");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    hideMsg();
+
+    const fullname = getValue("fullname");
+    const email = getValue("email");
+    const organization = getValue("organization");
+
+    if (!fullname || !email || !organization) {
+        return showMsg("All fields are required");
+    }
+
+    if (!email.includes("@")) {
+        return showMsg("Please enter a valid email address");
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+
+    try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                fullname: fullname,
+                email: email,
+                organization: organization
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            btn.disabled = false;
+            btn.textContent = "Submit Access Request";
+
+            if (res.status === 409) {
+                return showMsg("This email is already registered or pending approval");
+            }
+            return showMsg(data.error || "Registration failed");
+        }
+
+        msg.style.color = "#7CFF9B";
+        showMsg("Access request submitted. You will receive an email upon approval.");
+        btn.textContent = "Request Submitted";
+      
+
+
+    } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = "Submit Access Request";
+        showMsg("Server unavailable. Please try again later.");
+    }
+});
+
+function getValue(id) {
+    return document.getElementById(id).value.trim();
+}
+
+function showMsg(text) {
+    msg.textContent = text;
+    msg.style.display = "block";
+}
+
+function hideMsg() {
+    msg.style.display = "none";
+    msg.style.color = "#ffb3b3";
+}
+</script>
+
+
+</body>
+</html>
